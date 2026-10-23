@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "avatar_poc",
+  "project_id": "63406adb-42e7-4efd-8d30-96c118228463"
+}
