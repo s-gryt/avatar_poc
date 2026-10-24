@@ -249,7 +249,7 @@ git init -q "$mapped"
 git_in_mapped() { git -C "$mapped" -c user.name=test -c user.email=test@example.invalid -c commit.gpgsign=false "$@"; }
 git_in_mapped commit -q --allow-empty -m base
 git -C "$root" ls-files | awk '!/\//' >"$work/root-files"
-git -C "$root" ls-files tools rules .vale .github >"$work/gate-files"
+git -C "$root" ls-files tools rules .vale .github .agents/skills/impact-recap/scripts >"$work/gate-files"
 git -C "$root" ls-files | while IFS= read -r path; do
   grep -qF -- "$path" "$root/.pre-commit-config.yaml" "$root"/.github/workflows/*.yml 2>/dev/null && printf '%s\n' "$path"
 done >>"$work/gate-files"
@@ -272,7 +272,11 @@ expect pass areas-gate-files-rate-high awk -F'\t' '
   ($3 in gate) && $2 != "high" { print "gate file below high: " $3 " (" $1 " " $2 ")"; bad = 1 }
   END { exit bad }
 ' "$work/gate-files" "$work/mapped-rows"
-expect pass areas-covers-every-gate-file test "$(sort -u "$work/gate-files" | wc -l)" -le "$(wc -l <"$work/mapped-rows")"
+expect pass areas-rates-every-expected-file awk -F'\t' '
+  FILENAME == ARGV[1] { rated[$3] = 1; next }
+  !($1 in rated) { print "not rated by facts.sh: " $1; bad = 1 }
+  END { exit bad }
+' "$work/mapped-rows" "$work/root-files" "$work/gate-files"
 
 printf '%d passed, %d failed\n' "$passed" "$failed"
 [ "$failed" -eq 0 ]
