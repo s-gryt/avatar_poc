@@ -67,11 +67,60 @@ class CheckTest(unittest.TestCase):
     def test_link_to_index_fails(self) -> None:
         self.assertIn("links to the index", errors({**VALID, "ALPHA.md": ALPHA + "\n[Index](README.md)\n"}))
 
-    def test_nested_directory_fails(self) -> None:
-        self.assertIn("only flat Markdown files", errors({**VALID, "contracts/PORT.md": "# Port\n\nPort.\n"}))
+    def test_nested_document_linked_from_index_passes(self) -> None:
+        index = INDEX + "3. [Port](contracts/PORT.md)\n"
+        port = "# Port\n\nPort builds on [Beta](../BETA.md).\n"
+        self.assertEqual(errors({**VALID, "README.md": index, "contracts/PORT.md": port}), "")
+
+    def test_nested_document_not_in_index_fails(self) -> None:
+        self.assertIn("docs/contracts/PORT.md: not linked from", errors({**VALID, "contracts/PORT.md": "# Port\n\nPort.\n"}))
 
     def test_non_markdown_file_fails(self) -> None:
-        self.assertIn("only flat Markdown files", errors({**VALID, "diagram.txt": "x\n"}))
+        self.assertIn("only Markdown files are allowed", errors({**VALID, "diagram.txt": "x\n"}))
+
+    def test_decision_referenced_by_specification_passes(self) -> None:
+        beta = BETA + "\nChosen per [ADR 1](adr/0001-ports.md).\n"
+        record = "# Ports over direct calls\n\nCapabilities talk through ports.\n\n## Context\n"
+        self.assertEqual(errors({**VALID, "BETA.md": beta, "adr/0001-ports.md": record}), "")
+
+    def test_unreferenced_decision_fails(self) -> None:
+        record = "# Ports over direct calls\n\nCapabilities talk through ports.\n"
+        self.assertIn("decision record is not referenced", errors({**VALID, "adr/0001-ports.md": record}))
+
+    def test_decision_linking_back_to_specification_fails(self) -> None:
+        beta = BETA + "\nChosen per [ADR 1](adr/0001-ports.md).\n"
+        record = "# Ports over direct calls\n\nSee [Beta](../BETA.md).\n"
+        self.assertIn("reference cycle", errors({**VALID, "BETA.md": beta, "adr/0001-ports.md": record}))
+
+    def test_decision_template_headings_may_repeat(self) -> None:
+        beta = BETA + "\n[ADR 1](adr/0001-a.md) and [ADR 2](adr/0002-b.md).\n"
+        first = "# First choice\n\nAlpha first.\n\n## Context\n\n## Decision\n"
+        second = "# Second choice\n\nBeta second.\n\n## Context\n\n## Decision\n"
+        files = {**VALID, "BETA.md": beta, "adr/0001-a.md": first, "adr/0002-b.md": second}
+        self.assertEqual(errors(files), "")
+
+    def test_document_over_line_cap_fails(self) -> None:
+        self.assertIn("split the document", errors({**VALID, "ALPHA.md": ALPHA + "\n" * 130}))
+
+    def test_document_over_word_cap_fails(self) -> None:
+        self.assertIn("split the document", errors({**VALID, "ALPHA.md": ALPHA + "word " * 1001 + "\n"}))
+
+    def test_mermaid_fence_fails(self) -> None:
+        diagram = ALPHA + "\n```mermaid\ngraph TD\n```\n"
+        self.assertIn("mermaid diagrams are banned", errors({**VALID, "ALPHA.md": diagram}))
+
+    def test_version_label_fails(self) -> None:
+        self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + "\nThe v2 model applies.\n"}))
+
+    def test_date_label_fails(self) -> None:
+        self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + "\nAgreed 2026-10-24.\n"}))
+
+    def test_status_label_fails(self) -> None:
+        self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + "\nStatus: draft\n"}))
+
+    def test_labels_inside_code_fence_pass(self) -> None:
+        fenced = ALPHA + "\n```text\nv2 2026-10-24\n```\n"
+        self.assertEqual(errors({**VALID, "ALPHA.md": fenced}), "")
 
 
 if __name__ == "__main__":
