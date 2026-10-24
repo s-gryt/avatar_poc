@@ -1,0 +1,101 @@
+exclude: ^\.beads|^(\.agents|\.claude|\.codex|\.cursor)/|^(AGENTS|CLAUDE)\.md$
+
+default_language_version:
+  python: python3.13
+
+default_install_hook_types: [pre-commit]
+fail_fast: false
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: forbid-archive
+        name: forbid archive_DO_NOT_COMMIT
+        language: fail
+        entry: archive_DO_NOT_COMMIT/ must never be committed
+        files: ^archive_DO_NOT_COMMIT/
+      - id: forbid-ds-store
+        name: forbid .DS_Store
+        language: fail
+        entry: .DS_Store must never be committed
+        files: (^|/)\.DS_Store$
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.24.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: markdown-duplicates-prose
+        name: markdown duplicates (prose, sentence + 8-word window, zero tolerance)
+        language: python
+        entry: python tools/md_duplicates.py
+        pass_filenames: false
+        always_run: true
+      - id: markdown-duplicates-blocks
+        name: markdown duplicates (jscpd blocks, zero tolerance)
+        language: node
+        additional_dependencies: [jscpd@5.4.2]
+        entry: jscpd --config .jscpd.json .
+        pass_filenames: false
+        always_run: true
+
+  - repo: local
+    hooks:
+      - id: no-comments-ast
+        name: no comments (ast-grep, parsed languages)
+        language: python
+        additional_dependencies: [ast-grep-cli==0.51.0]
+        entry: ast-grep scan --config sgconfig.yml
+      - id: no-comments-text
+        name: no comments (other formats, unknown types fail)
+        language: python
+        entry: python tools/no_comments.py
+
+  - repo: local
+    hooks:
+      - id: docs-graph
+        name: docs graph (index, scope, single ownership, acyclic references)
+        language: python
+        entry: python tools/docs_graph.py
+        pass_filenames: false
+        always_run: true
+
+  - repo: https://github.com/errata-ai/vale
+    rev: v3.25.1
+    hooks:
+      - id: vale
+        name: vale (prose style, every alert fails)
+        entry: tools/vale.sh
+        require_serial: true
+        types: [markdown]
+
+  - repo: https://github.com/lycheeverse/lychee
+    rev: lychee-v0.24.2
+    hooks:
+      - id: lychee
+        args: [--config, lychee.toml, --offline, --no-progress]
+        types: [markdown]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint

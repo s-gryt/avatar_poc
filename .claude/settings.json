@@ -1,33 +1,9 @@
 {
-  "enabledPlugins": {},
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "bd prime --hook-json",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "codegraph prompt-hook",
-            "type": "command"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(*)",
-      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess \u0026\u0026 bun test GHESS.Web/src/utils/eventMapper.test.ts 2\u003e\u00261)",
-      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess \u0026\u0026 ~/.bun/bin/bun test GHESS.Web/src/utils/eventMapper.test.ts 2\u003e\u00261)",
+      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess && bun test GHESS.Web/src/utils/eventMapper.test.ts 2>&1)",
+      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess && ~/.bun/bin/bun test GHESS.Web/src/utils/eventMapper.test.ts 2>&1)",
       "Bash(grep rule3Builders:*)",
       "Bash(grep:*)",
       "Bash(head:*)",
@@ -57,5 +33,31 @@
       "WebFetch(domain:www.ibm.com)",
       "mcp__codegraph__*"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bd prime --hook-json"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph prompt-hook"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "ponytail@ponytail": true
   }
 }

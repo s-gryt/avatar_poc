@@ -1,0 +1,75 @@
+id: no-comments-python
+language: python
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-docstrings-python
+language: python
+severity: error
+message: Docstrings and bare string statements are banned.
+rule:
+  kind: string
+  inside:
+    kind: expression_statement
+---
+id: no-comments-bash
+language: bash
+severity: error
+message: Comments are banned. Only a shebang on line 1 of a .sh file is allowed.
+rule:
+  kind: comment
+  not:
+    all:
+      - regex: "^#!"
+      - nthChild: 1
+---
+id: no-comments-yaml
+language: yaml
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-json
+language: json
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-javascript
+language: javascript
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-typescript
+language: typescript
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-tsx
+language: tsx
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-css
+language: css
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment
+---
+id: no-comments-html
+language: html
+severity: error
+message: Comments are banned.
+rule:
+  kind: comment

@@ -1,7 +1,5 @@
-# Working material that must never enter the repository.
 /archive_DO_NOT_COMMIT/
 
-# OS / editor
 .DS_Store
 Thumbs.db
 *.swp
@@ -10,22 +8,18 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Local agent / tool state
 /.omc/
+/.beads.gate.lock*
 /.codegraph/
-/.serena/cache/
-/.serena/project.local.yml
 /.claude/settings.local.json
 /.claude/worktrees/
 
-# Secrets and local configuration
 .env
 .env.*
 !.env.example
 *.pem
 *.key
 
-# Python
 __pycache__/
 *.py[cod]
 .venv/
@@ -39,7 +33,6 @@ htmlcov/
 build/
 dist/
 
-# Node / TypeScript
 node_modules/
 .pnpm-store/
 *.tsbuildinfo
@@ -48,8 +41,9 @@ coverage/
 playwright-report/
 test-results/
 
-# Governance reports
 /reports/
 
-# Evaluation artifacts (recorded media stays out of git)
 /evaluation/artifacts/
+
+/.vale/styles/*
+!/.vale/styles/config/

@@ -1,0 +1,15 @@
+include_fragments = "full"
+include_verbatim = false
+require_https = true
+max_retries = 2
+accept = ["200..=204", "429"]
+exclude_path = [
+  "archive_DO_NOT_COMMIT",
+  ".agents",
+  ".beads",
+  ".claude",
+  ".codex",
+  ".cursor",
+  "AGENTS.md",
+  "CLAUDE.md",
+]

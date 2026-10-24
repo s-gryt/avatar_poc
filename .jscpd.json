@@ -1,0 +1,29 @@
+{
+  "format": [
+    "markdown"
+  ],
+  "minTokens": 6,
+  "minLines": 1,
+  "threshold": 0,
+  "exitCode": 1,
+  "ignoreCase": true,
+  "reporters": [
+    "console"
+  ],
+  "ignore": [
+    "**/archive_DO_NOT_COMMIT/**",
+    "**/.agents/**",
+    "**/.beads/**",
+    "**/.claude/**",
+    "**/.codex/**",
+    "**/.cursor/**",
+    "**/.omc/**",
+    "**/.codegraph/**",
+    "**/node_modules/**",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "ignorePattern": [
+    "\\[[^\\]]*\\]\\([^)]*\\)"
+  ]
+}
