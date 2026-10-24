@@ -57,6 +57,13 @@ repos:
         entry: jscpd --config .jscpd.json .
         pass_filenames: false
         always_run: true
+      - id: markdown-duplicates-blocks-self-tests
+        name: jscpd config self-tests (distinct tables pass, repeated rows and blocks fail)
+        language: node
+        additional_dependencies: [jscpd@5.4.2]
+        entry: tools/tests/jscpd_config.sh
+        pass_filenames: false
+        always_run: true
 
   - repo: local
     hooks:
