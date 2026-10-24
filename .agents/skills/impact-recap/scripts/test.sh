@@ -189,8 +189,18 @@ expect fail commit-why-after-risk "$here/lint.sh" commit "$work/commit-risk-befo
 expect fail facts-staged-with-range "$here/facts.sh" --staged --base HEAD
 
 grep -v '^| Agent instructions' "$work/pr-good" >"$work/pr-no-risk-row"
+awk '/^\| Area/ { next } { print } /^\| Agent instructions/ { print }' "$work/pr-good" >"$work/pr-no-risk-header"
+sed 's/^| Agent instructions.*$/| unspecified |/' "$work/pr-good" >"$work/pr-one-cell-risk-row"
+sed 's/^| Agent instructions.*$/|   | medium | Agents follow the new description shape |/' "$work/pr-good" >"$work/pr-empty-risk-area"
+sed 's/^| Agent instructions.*$/| Agent instructions |   | Agents follow the new description shape |/' "$work/pr-good" >"$work/pr-empty-risk-level"
+sed 's/^| Agent instructions.*$/| Agent instructions | medium |   |/' "$work/pr-good" >"$work/pr-empty-risk-consequence"
 sed 's/^- scripts\/test.sh passes$/scripts\/test.sh passes/' "$work/pr-good" >"$work/pr-no-verification-item"
 expect fail pr-risk-without-area-row "$here/lint.sh" pr "$work/pr-no-risk-row"
+expect fail pr-risk-without-header "$here/lint.sh" pr "$work/pr-no-risk-header"
+expect fail pr-one-cell-risk-row "$here/lint.sh" pr "$work/pr-one-cell-risk-row"
+expect fail pr-empty-risk-area "$here/lint.sh" pr "$work/pr-empty-risk-area"
+expect fail pr-empty-risk-level "$here/lint.sh" pr "$work/pr-empty-risk-level"
+expect fail pr-empty-risk-consequence "$here/lint.sh" pr "$work/pr-empty-risk-consequence"
 expect fail pr-verification-without-item "$here/lint.sh" pr "$work/pr-no-verification-item"
 
 write_commit() {

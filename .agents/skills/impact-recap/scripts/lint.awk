@@ -116,7 +116,14 @@ END {
       continue
     }
     if (section != "") body[section] = body[section] " " trim(line)
-    if (section == "Risk" && line ~ /^[ \t]*\|/ && line !~ /^[ \t]*\|[ \t:|-]*$/) risk_rows++
+    if (section == "Risk" && line ~ /^[ \t]*\|/ && line !~ /^[ \t]*\|[ \t:|-]*$/) {
+      split(line, risk_cells, /\|/)
+      area = trim(risk_cells[2]); level = trim(risk_cells[3]); consequence = trim(risk_cells[4])
+      if (area != "" && level != "" && consequence != "") {
+        if (tolower(area) == "area" && tolower(level) == "risk") risk_header = 1
+        else risk_rows++
+      }
+    }
     if (section == "Verification" && line ~ /^[ \t]*[-*] [^ ]/) verification_items++
     if (line !~ /^[ \t]*\|/) prose_words += words(line)
   }
@@ -133,7 +140,7 @@ END {
   if (("Impact" in position) && position["Impact"] != 1) fail("first section must be '## Impact'")
   for (name in position) if (trim(body[name]) == "") fail("section '" name "' is empty; omit optional sections instead")
   if (prose_words > 350) fail("recap has " prose_words " words outside tables, code, and diagrams; limit is 350, aim for 250")
-  if (("Risk" in position) && risk_rows < 2) fail("## Risk: needs a table with a header and at least one area row")
+  if (("Risk" in position) && (!risk_header || risk_rows < 1)) fail("## Risk: needs a table with a header and at least one area row")
   if (("Verification" in position) && verification_items < 1) fail("## Verification needs at least one '- ' item: a check and its result, or 'Not verified: ...'")
   if ("Impact" in position) check_impact("## Impact", body["Impact"])
   if ("Risk" in position) check_level("## Risk:", risk_heading)
