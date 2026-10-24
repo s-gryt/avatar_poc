@@ -1,3 +1,3 @@
 # Domain
 
-Core domain terminology, invariants and interaction state, written under the [engineering rules](ENGINEERING.md).
+Core domain terminology, invariants and interaction state that realize the [requirements](REQUIREMENTS.md).
