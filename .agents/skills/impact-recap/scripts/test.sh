@@ -243,5 +243,40 @@ expect fail upsert-refuses-reversed "$here/upsert-pr.sh" --merge "$work/body-rev
 expect fail upsert-refuses-two-blocks "$here/upsert-pr.sh" --merge "$work/body-two-blocks" "$work/pr-good"
 expect fail upsert-refuses-missing-block "$here/upsert-pr.sh" --merge "$work/body-plain" "$work/missing"
 
+root=$(git -C "$here" rev-parse --show-toplevel)
+mapped="$work/mapped"
+git init -q "$mapped"
+git_in_mapped() { git -C "$mapped" -c user.name=test -c user.email=test@example.invalid -c commit.gpgsign=false "$@"; }
+git_in_mapped commit -q --allow-empty -m base
+git -C "$root" ls-files | awk '!/\//' >"$work/root-files"
+git -C "$root" ls-files tools rules .vale .github .agents/skills/impact-recap/scripts >"$work/gate-files"
+git -C "$root" ls-files | while IFS= read -r path; do
+  grep -qF -- "$path" "$root/.pre-commit-config.yaml" "$root"/.github/workflows/*.yml 2>/dev/null && printf '%s\n' "$path"
+done >>"$work/gate-files"
+printf '.pre-commit-config.yaml\n' >>"$work/gate-files"
+sort -u "$work/root-files" "$work/gate-files" | while IFS= read -r path; do
+  mkdir -p "$mapped/$(dirname "$path")"
+  printf 'x\n' >"$mapped/$path"
+done
+git_in_mapped add -A
+git_in_mapped commit -q -m mapped
+(cd "$mapped" && "$here/facts.sh" --base HEAD~1 --head HEAD --no-log) >"$work/mapped-facts" 2>/dev/null
+awk '/^changes:/ { on = 1; next } on { print $2 "\t" $3 "\t" $4 }' "$work/mapped-facts" >"$work/mapped-rows"
+expect pass areas-root-files-explicitly-mapped awk -F'\t' '
+  FILENAME == ARGV[1] { root[$1] = 1; next }
+  ($3 in root) && $1 == "source" { print "unmapped root file: " $3; bad = 1 }
+  END { exit bad }
+' "$work/root-files" "$work/mapped-rows"
+expect pass areas-gate-files-rate-high awk -F'\t' '
+  FILENAME == ARGV[1] { gate[$1] = 1; next }
+  (($3 in gate) || $1 == "gates" || $1 == "ci") && $2 != "high" { print "gate file below high: " $3 " (" $1 " " $2 ")"; bad = 1 }
+  END { exit bad }
+' "$work/gate-files" "$work/mapped-rows"
+expect pass areas-rates-every-expected-file awk -F'\t' '
+  FILENAME == ARGV[1] { rated[$3] = 1; next }
+  !($1 in rated) { print "not rated by facts.sh: " $1; bad = 1 }
+  END { exit bad }
+' "$work/mapped-rows" "$work/root-files" "$work/gate-files"
+
 printf '%d passed, %d failed\n' "$passed" "$failed"
 [ "$failed" -eq 0 ]

@@ -79,6 +79,21 @@ repos:
         pass_filenames: false
         always_run: true
 
+  - repo: local
+    hooks:
+      - id: guardrail-self-tests
+        name: guardrail self-tests (gate scripts reject known violations)
+        language: python
+        entry: python -B -m unittest discover -s tools -p test_*.py
+        pass_filenames: false
+        always_run: true
+      - id: impact-recap-self-tests
+        name: impact-recap self-tests (recap lint, facts, risk mapping)
+        language: system
+        entry: .agents/skills/impact-recap/scripts/test.sh
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/errata-ai/vale
     rev: v3.25.1
     hooks:
