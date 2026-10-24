@@ -18,7 +18,7 @@ _REFERENCE_LINK: Final = re.compile(r"^\s*\[[^\]]+\]:\s*<?(\S+?)>?(?:\s|$)")
 _EXTERNAL: Final = re.compile(r"^[a-z][a-z0-9+.-]*:", re.IGNORECASE)
 _MERMAID: Final = re.compile(r"^\s*mermaid\b", re.IGNORECASE)
 _STATE_LABEL: Final = re.compile(
-    r"\bv\d+(?:\.\d+)*\b|\b\d{4}-\d{2}-\d{2}\b|^\s*(?:status|version|date|last updated)\s*:",
+    r"\bv\d+(?:\.\d+)*\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:status|version|date|last updated)\s*:",
     re.IGNORECASE,
 )
 _WORD: Final = re.compile(r"\S+")

@@ -143,6 +143,11 @@ class CheckTest(unittest.TestCase):
         record = "# Ports over direct calls\n\nPorts carry [Alpha](../ALPHA.md) concepts.\n"
         self.assertEqual(errors({**VALID, "BETA.md": beta, "adr/0001-ports.md": record}), "")
 
+    def test_decorated_status_labels_fail(self) -> None:
+        for label in ("## Status: draft", "[Status: draft](BETA.md)", "- **Status:** draft"):
+            with self.subTest(label=label):
+                self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + f"\n{label}\n"}))
+
     def test_labels_inside_code_fence_pass(self) -> None:
         fenced = ALPHA + "\n```text\nv2 2026-10-24\n```\n"
         self.assertEqual(errors({**VALID, "ALPHA.md": fenced}), "")
