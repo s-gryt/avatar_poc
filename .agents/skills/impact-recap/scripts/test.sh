@@ -81,6 +81,10 @@ Descriptions restated the diff, so reviewers re-derived intent and risk.
 
 ## Risk: medium
 
+| Area | Risk | What changes in behavior |
+| ---- | ---- | ------------------------ |
+| Agent instructions | medium | Agents follow the new description shape |
+
 Only agent instructions change; no gate or CI behavior moves.
 
 ## Flow
@@ -173,6 +177,21 @@ printf 'draft\n' >"$repo/notes.md"
 git_in_repo add notes.md
 facts_in_repo --staged >"$work/facts-staged" 2>/dev/null
 expect pass facts-staged-rates-docs-low grep -q '^risk: low (driven by docs)' "$work/facts-staged"
+
+cat >"$work/commit-risk-before-why" <<'EOF2'
+fix(docs): restore the validation guide link
+
+Impact: Readers following the docs index reach the validation page.
+Risk: low - one link target.
+Why: The docs index pointed at a renamed page.
+EOF2
+expect fail commit-why-after-risk "$here/lint.sh" commit "$work/commit-risk-before-why"
+expect fail facts-staged-with-range "$here/facts.sh" --staged --base HEAD
+
+grep -v '^| Agent instructions' "$work/pr-good" >"$work/pr-no-risk-row"
+sed 's/^- scripts\/test.sh passes$/scripts\/test.sh passes/' "$work/pr-good" >"$work/pr-no-verification-item"
+expect fail pr-risk-without-area-row "$here/lint.sh" pr "$work/pr-no-risk-row"
+expect fail pr-verification-without-item "$here/lint.sh" pr "$work/pr-no-verification-item"
 
 write_commit() {
   printf 'docs(guide): restore the validation guide link\n\nImpact: %s\n' "$2" >"$work/$1"

@@ -75,6 +75,7 @@ END {
         label = substr(lines[i], 1, index(lines[i], ":") - 1)
         if (label in field) fail(label ": appears twice")
         if (!("Impact" in field) && label != "Impact") fail(label ": appears before Impact:; Impact comes first")
+        if (label == "Why" && ("Risk" in field)) fail("Why: appears after Risk:; order is Impact, Why, Risk")
         field[label] = substr(lines[i], RLENGTH + 1)
         current = label
       } else if (lines[i] == "") {
@@ -115,6 +116,8 @@ END {
       continue
     }
     if (section != "") body[section] = body[section] " " trim(line)
+    if (section == "Risk" && line ~ /^[ \t]*\|/ && line !~ /^[ \t]*\|[ \t:|-]*$/) risk_rows++
+    if (section == "Verification" && line ~ /^[ \t]*[-*] [^ ]/) verification_items++
     if (line !~ /^[ \t]*\|/) prose_words += words(line)
   }
   if (fence != "") fail("code fence is not closed")
@@ -130,6 +133,8 @@ END {
   if (("Impact" in position) && position["Impact"] != 1) fail("first section must be '## Impact'")
   for (name in position) if (trim(body[name]) == "") fail("section '" name "' is empty; omit optional sections instead")
   if (prose_words > 350) fail("recap has " prose_words " words outside tables, code, and diagrams; limit is 350, aim for 250")
+  if (("Risk" in position) && risk_rows < 2) fail("## Risk: needs a table with a header and at least one area row")
+  if (("Verification" in position) && verification_items < 1) fail("## Verification needs at least one '- ' item: a check and its result, or 'Not verified: ...'")
   if ("Impact" in position) check_impact("## Impact", body["Impact"])
   if ("Risk" in position) check_level("## Risk:", risk_heading)
   exit (failures > 0)

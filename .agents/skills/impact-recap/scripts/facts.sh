@@ -11,17 +11,23 @@ usage() {
 
 staged=0
 show_log=1
+ranged=0
 base=""
 head=HEAD
 while [ $# -gt 0 ]; do
   case $1 in
     --staged) staged=1; shift ;;
     --no-log) show_log=0; shift ;;
-    --base) [ $# -ge 2 ] || usage; base=$2; shift 2 ;;
-    --head) [ $# -ge 2 ] || usage; head=$2; shift 2 ;;
+    --base) [ $# -ge 2 ] || usage; base=$2; ranged=1; shift 2 ;;
+    --head) [ $# -ge 2 ] || usage; head=$2; ranged=1; shift 2 ;;
     *) usage ;;
   esac
 done
+
+if [ "$staged" -eq 1 ] && [ "$ranged" -eq 1 ]; then
+  printf '%s: --staged cannot be combined with --base or --head\n' "${0##*/}" >&2
+  usage
+fi
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT

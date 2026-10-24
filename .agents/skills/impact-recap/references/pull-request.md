@@ -46,7 +46,9 @@ sequenceDiagram
 ## Section rules
 
 - Required, in this order: `Impact` (first), `Why`, `Risk: <level>`,
-  `Verification`. Optional: `Flow`, `Changes`, `Before / after`.
+  `Verification`. Impact is 2-5 sentences and at least 20 words; `lint.sh`
+  enforces the word floor. Risk holds the area table; Verification holds at
+  least one `- ` item. Optional: `Flow`, `Changes`, `Before / after`.
 - Omit an optional section rather than leaving it empty.
 - `Risk` level is at least the floor from `facts.sh`. The table has one row
   per area that `facts.sh` reports, named in plain words a reviewer knows
