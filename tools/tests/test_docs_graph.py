@@ -118,6 +118,31 @@ class CheckTest(unittest.TestCase):
     def test_status_label_fails(self) -> None:
         self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + "\nStatus: draft\n"}))
 
+    def test_long_mermaid_fence_fails(self) -> None:
+        diagram = ALPHA + "\n````Mermaid\ngraph TD\n````\n"
+        self.assertIn("mermaid diagrams are banned", errors({**VALID, "ALPHA.md": diagram}))
+
+    def test_mermaid_text_inside_longer_fence_passes(self) -> None:
+        nested = ALPHA + "\n````text\n```mermaid\nv2\n```\n````\n"
+        self.assertEqual(errors({**VALID, "ALPHA.md": nested}), "")
+
+    def test_date_label_without_iso_value_fails(self) -> None:
+        self.assertIn("documents are stateless", errors({**VALID, "ALPHA.md": ALPHA + "\nDate: pending\n"}))
+
+    def test_date_in_link_destination_passes(self) -> None:
+        beta = BETA + "\nChosen per [the decision](adr/2026-10-24-ports.md).\n"
+        record = "# Ports over direct calls\n\nCapabilities talk through ports.\n"
+        self.assertEqual(errors({**VALID, "BETA.md": beta, "adr/2026-10-24-ports.md": record}), "")
+
+    def test_fenced_words_count_toward_word_cap(self) -> None:
+        fenced = ALPHA + "\n```text\n" + "word " * 1001 + "\n```\n"
+        self.assertIn("split the document", errors({**VALID, "ALPHA.md": fenced}))
+
+    def test_decision_linking_to_earlier_specification_passes(self) -> None:
+        beta = BETA + "\nChosen per [ADR 1](adr/0001-ports.md).\n"
+        record = "# Ports over direct calls\n\nPorts carry [Alpha](../ALPHA.md) concepts.\n"
+        self.assertEqual(errors({**VALID, "BETA.md": beta, "adr/0001-ports.md": record}), "")
+
     def test_labels_inside_code_fence_pass(self) -> None:
         fenced = ALPHA + "\n```text\nv2 2026-10-24\n```\n"
         self.assertEqual(errors({**VALID, "ALPHA.md": fenced}), "")

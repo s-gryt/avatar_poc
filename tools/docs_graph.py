@@ -11,17 +11,18 @@ DECISIONS: Final = DOCS / "adr"
 MAX_LINES: Final = 120
 MAX_WORDS: Final = 1000
 
-_FENCE: Final = re.compile(r"^\s*(```|~~~)")
+_FENCE: Final = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 _HEADING: Final = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _INLINE_LINK: Final = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
 _REFERENCE_LINK: Final = re.compile(r"^\s*\[[^\]]+\]:\s*<?(\S+?)>?(?:\s|$)")
 _EXTERNAL: Final = re.compile(r"^[a-z][a-z0-9+.-]*:", re.IGNORECASE)
-_MERMAID: Final = re.compile(r"^\s*(```|~~~)\s*mermaid\b", re.IGNORECASE)
+_MERMAID: Final = re.compile(r"^\s*mermaid\b", re.IGNORECASE)
 _STATE_LABEL: Final = re.compile(
-    r"\bv\d+(?:\.\d+)*\b|\b\d{4}-\d{2}-\d{2}\b|^\s*(?:status|version|last updated)\s*:",
+    r"\bv\d+(?:\.\d+)*\b|\b\d{4}-\d{2}-\d{2}\b|^\s*(?:status|version|date|last updated)\s*:",
     re.IGNORECASE,
 )
 _WORD: Final = re.compile(r"\S+")
+_LINK_DESTINATION: Final = re.compile(r"\]\([^)]*\)|^\s*\[[^\]]+\]:.*$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,13 +44,22 @@ class Document:
     state_labels: tuple[tuple[int, str], ...]
 
 
-def _visible_lines(text: str) -> Iterator[tuple[int, str]]:
-    in_fence = False
+def _fences(text: str) -> Iterator[tuple[int, str, str | None]]:
+    marker = ""
     for number, line in enumerate(text.splitlines(), start=1):
-        if _FENCE.match(line):
-            in_fence = not in_fence
-        elif not in_fence:
-            yield number, line
+        match = _FENCE.match(line)
+        if not marker:
+            if match:
+                marker = match.group(1)
+                yield number, line, match.group(2)
+            else:
+                yield number, line, None
+        elif match and match.group(1)[0] == marker[0] and len(match.group(1)) >= len(marker) and not match.group(2).strip():
+            marker = ""
+
+
+def _visible_lines(text: str) -> Iterator[tuple[int, str]]:
+    return ((number, line) for number, line, info in _fences(text) if info is None)
 
 
 def _link_targets(path: Path, lines: Sequence[str]) -> frozenset[Path]:
@@ -91,12 +101,12 @@ def parse(path: Path) -> Document:
         _link_targets(path, lines),
         _scope(lines),
         len(text.splitlines()),
-        sum(len(_WORD.findall(line)) for line in lines),
-        tuple(number for number, line in enumerate(text.splitlines(), start=1) if _MERMAID.match(line)),
+        len(_WORD.findall(text)),
+        tuple(number for number, _, info in _fences(text) if info is not None and _MERMAID.match(info)),
         tuple(
             (number, match.group().strip())
             for number, line in visible
-            if (match := _STATE_LABEL.search(line))
+            if (match := _STATE_LABEL.search(_LINK_DESTINATION.sub("]", line)))
         ),
     )
 
