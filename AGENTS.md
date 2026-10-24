@@ -47,6 +47,24 @@ cp -rf source dest          # NOT: cp -r source dest
 - `apt-get` - use `-y` flag
 - `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
 
+## Commits and Pull Requests
+
+Every commit message and pull request description in this repo follows the
+[impact-recap skill](.agents/skills/impact-recap/SKILL.md). Lead with impact
+(who notices, what behaves differently, what could break, how it was
+verified), not with a narration of the diff.
+
+```bash
+.agents/skills/impact-recap/scripts/facts.sh --staged               # diff facts + risk floor for a commit
+.agents/skills/impact-recap/scripts/lint.sh commit <msg> --risk <floor>
+.agents/skills/impact-recap/scripts/facts.sh                        # diff facts for a PR against origin/main
+.agents/skills/impact-recap/scripts/lint.sh pr <block> --risk <floor>
+.agents/skills/impact-recap/scripts/upsert-pr.sh <number> <block> --risk <floor>   # refresh an existing PR description
+```
+
+- Never rate risk below the floor `facts.sh` reports.
+- Re-run the PR recap after any push that changes behavior.
+
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
 ## Beads Issue Tracker
 

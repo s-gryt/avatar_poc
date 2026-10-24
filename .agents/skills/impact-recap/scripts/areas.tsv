@@ -1,0 +1,12 @@
+^(\.github/|\.coderabbit\.yaml$)	ci	high
+^(\.pre-commit-config\.yaml|sgconfig\.yml|\.markdownlint-cli2\.yaml|\.vale\.ini|\.jscpd\.json|lychee\.toml|\.editorconfig|\.gitattributes|\.gitignore)$	gates	high
+^(tools|rules|\.vale)/	gates	high
+^\.beads/(config\.yaml|metadata\.json)$	tracker	medium
+^\.beads/	tracker	low
+^(AGENTS|CLAUDE)\.md$	agents	medium
+^\.(agents|claude|codex|cursor|serena)/	agents	medium
+^\.mcp\.json$	agents	medium
+^docs/(ENGINEERING|DOMAIN|ARCHITECTURE|CONTRACTS)\.md$	design	medium
+^docs/	docs	low
+\.mdx?$	docs	low
+.	source	medium

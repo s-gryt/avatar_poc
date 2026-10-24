@@ -1,0 +1,10 @@
+reviews:
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+  finishing_touches:
+    docstrings:
+      enabled: false
+  tools:
+    vale:
+      enabled: false
