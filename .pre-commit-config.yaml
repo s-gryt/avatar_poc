@@ -84,7 +84,7 @@ repos:
       - id: guardrail-self-tests
         name: guardrail self-tests (gate scripts reject known violations)
         language: python
-        entry: python -B -m unittest discover -s tools -p test_*.py
+        entry: python -B -m unittest discover -s tools/tests -t tools -p test_*.py
         pass_filenames: false
         always_run: true
       - id: impact-recap-self-tests

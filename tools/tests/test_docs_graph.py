@@ -34,7 +34,7 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(errors(VALID), "")
 
     def test_repository_docs_pass(self) -> None:
-        self.assertEqual(check(Path(__file__).resolve().parent.parent), ())
+        self.assertEqual(check(Path(__file__).resolve().parents[2]), ())
 
     def test_missing_docs_directory_passes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
