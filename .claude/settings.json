@@ -1,38 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(*)",
-      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess && bun test GHESS.Web/src/utils/eventMapper.test.ts 2>&1)",
-      "Bash(cd /c/Users/s.grytsaienko/source/repos/GlobalHess && ~/.bun/bin/bun test GHESS.Web/src/utils/eventMapper.test.ts 2>&1)",
-      "Bash(grep rule3Builders:*)",
-      "Bash(grep:*)",
-      "Bash(head:*)",
-      "mcp__plugin_claude-mem_mcp-search__smart_outline",
-      "Bash(grep -E \"\\\\.\\(json|md|txt|yml|yaml\\)$\")",
-      "Bash(dotnet build)",
-      "Bash(grep -n \"WHEN NOT MATCHED BY SOURCE\" \"/c/Users/p.witbrod/Projects/Carnival/GlobalHess/GHESS.Database/Migrations/SqlScripts\"/*.sql)",
-      "Bash(grep -r \"DropTable\\\\|DropColumn\\\\|DropIndex\\\\|DropForeignKey\\\\|DropPrimaryKey\" \"/c/Users/p.witbrod/Projects/Carnival/GlobalHess/GHESS.Database/Migrations\" --include=\"*.cs\" ! -path \"*/bin/*\" ! -path \"*/obj/*\")",
-      "Bash(grep -l \"\\\\.Sql.*DELETE\\\\|\\\\.Sql.*TRUNCATE\\\\|DropTable\\\\|DropColumn\" \"/c/Users/p.witbrod/Projects/Carnival/GlobalHess/GHESS.Database/Migrations\"/*.cs)",
-      "Bash(while read f)",
-      "Bash(do echo \"=== $f ===\")",
-      "Read(//c/Users/p.witbrod/Projects/Carnival/GlobalHess/**)",
-      "Bash(done)",
-      "Bash(dotnet test:*)",
-      "Bash(find c:/Users/p.witbrod/Projects/Carnival/GlobalHess/cdc-producer/GHESS.Cdc.Producer -type f -name *.json -o -name *.env* -o -name docker-compose*)",
-      "Bash(dotnet build:*)",
-      "Bash(tail -c 20 \"C:\\\\Users\\\\s.grytsaienko\\\\source\\\\repos\\\\GlobalHess\\\\GHESS.Web\\\\index.html\" | xxd)",
-      "mcp__sequentialthinking__sequentialthinking",
-      "WebSearch",
-      "mcp__plugin_context7_context7__resolve-library-id",
-      "WebFetch(domain:docs.dynatrace.com)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:medium.com)",
-      "WebFetch(domain:dynatrace-wwse.github.io)",
-      "WebFetch(domain:help.hcl-software.com)",
-      "WebFetch(domain:frostillic.us)",
-      "WebFetch(domain:www.ibm.com)",
-      "mcp__codegraph__*"
-    ]
   },
   "hooks": {
     "SessionStart": [
