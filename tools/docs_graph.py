@@ -7,12 +7,22 @@ from typing import Final
 
 DOCS: Final = Path("docs")
 INDEX: Final = DOCS / "README.md"
+DECISIONS: Final = DOCS / "adr"
+MAX_LINES: Final = 120
+MAX_WORDS: Final = 1000
 
-_FENCE: Final = re.compile(r"^\s*(```|~~~)")
+_FENCE: Final = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 _HEADING: Final = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _INLINE_LINK: Final = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
 _REFERENCE_LINK: Final = re.compile(r"^\s*\[[^\]]+\]:\s*<?(\S+?)>?(?:\s|$)")
 _EXTERNAL: Final = re.compile(r"^[a-z][a-z0-9+.-]*:", re.IGNORECASE)
+_MERMAID: Final = re.compile(r"^\s*mermaid\b", re.IGNORECASE)
+_STATE_LABEL: Final = re.compile(
+    r"\bv\d+(?:\.\d+)*\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:status|version|date|last updated)\s*:",
+    re.IGNORECASE,
+)
+_WORD: Final = re.compile(r"\S+")
+_LINK_DESTINATION: Final = re.compile(r"\]\([^)]*\)|^\s*\[[^\]]+\]:.*$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,15 +38,28 @@ class Document:
     headings: tuple[Heading, ...]
     targets: frozenset[Path]
     scope: str
+    lines: int
+    words: int
+    mermaid: tuple[int, ...]
+    state_labels: tuple[tuple[int, str], ...]
+
+
+def _fences(text: str) -> Iterator[tuple[int, str, str | None]]:
+    marker = ""
+    for number, line in enumerate(text.splitlines(), start=1):
+        match = _FENCE.match(line)
+        if not marker:
+            if match:
+                marker = match.group(1)
+                yield number, line, match.group(2)
+            else:
+                yield number, line, None
+        elif match and match.group(1)[0] == marker[0] and len(match.group(1)) >= len(marker) and not match.group(2).strip():
+            marker = ""
 
 
 def _visible_lines(text: str) -> Iterator[tuple[int, str]]:
-    in_fence = False
-    for number, line in enumerate(text.splitlines(), start=1):
-        if _FENCE.match(line):
-            in_fence = not in_fence
-        elif not in_fence:
-            yield number, line
+    return ((number, line) for number, line, info in _fences(text) if info is None)
 
 
 def _link_targets(path: Path, lines: Sequence[str]) -> frozenset[Path]:
@@ -64,14 +87,28 @@ def _scope(lines: Sequence[str]) -> str:
 
 
 def parse(path: Path) -> Document:
-    visible = tuple(_visible_lines(path.read_text(encoding="utf-8")))
+    text = path.read_text(encoding="utf-8")
+    visible = tuple(_visible_lines(text))
     lines = tuple(line for _, line in visible)
     headings = tuple(
         Heading(len(match.group(1)), match.group(2), number)
         for number, line in visible
         if (match := _HEADING.match(line))
     )
-    return Document(path, headings, _link_targets(path, lines), _scope(lines))
+    return Document(
+        path,
+        headings,
+        _link_targets(path, lines),
+        _scope(lines),
+        len(text.splitlines()),
+        len(_WORD.findall(text)),
+        tuple(number for number, _, info in _fences(text) if info is not None and _MERMAID.match(info)),
+        tuple(
+            (number, match.group().strip())
+            for number, line in visible
+            if (match := _STATE_LABEL.search(_LINK_DESTINATION.sub("]", line)))
+        ),
+    )
 
 
 def _cycle(graph: Mapping[Path, frozenset[Path]]) -> tuple[Path, ...]:
@@ -99,13 +136,14 @@ def _cycle(graph: Mapping[Path, frozenset[Path]]) -> tuple[Path, ...]:
 def check(root: Path) -> tuple[str, ...]:
     docs_dir = (root / DOCS).resolve()
     index_path = (root / INDEX).resolve()
+    decisions_dir = (root / DECISIONS).resolve()
     if not docs_dir.is_dir():
         return ()
     entries = sorted(docs_dir.rglob("*"))
     errors = [
-        f"{entry.relative_to(root.resolve())}: only flat Markdown files are allowed in docs/"
+        f"{entry.relative_to(root.resolve())}: only Markdown files are allowed in docs/"
         for entry in entries
-        if entry.is_dir() or entry.suffix != ".md"
+        if entry.is_file() and entry.suffix != ".md"
     ]
     files = [entry for entry in entries if entry.is_file() and entry.suffix == ".md"]
     if index_path not in files:
@@ -113,6 +151,8 @@ def check(root: Path) -> tuple[str, ...]:
 
     parsed = {path: parse(path) for path in files}
     nodes = {path: document for path, document in parsed.items() if path != index_path}
+    decisions = {path for path in nodes if path.is_relative_to(decisions_dir)}
+    specifications = set(nodes) - decisions
 
     def name(path: Path) -> str:
         return str(path.relative_to(root.resolve()))
@@ -128,11 +168,35 @@ def check(root: Path) -> tuple[str, ...]:
         if not document.scope
     ]
 
-    unlinked = sorted(set(nodes) - parsed[index_path].targets)
+    errors += [
+        f"{name(path)}: {document.lines} lines, {document.words} words; the cap is "
+        f"{MAX_LINES} lines and {MAX_WORDS} words, about two A4 pages; split the document"
+        for path, document in parsed.items()
+        if document.lines > MAX_LINES or document.words > MAX_WORDS
+    ]
+    errors += [
+        f"{name(path)}:{line}: mermaid diagrams are banned; draw the diagram in ASCII"
+        for path, document in parsed.items()
+        for line in document.mermaid
+    ]
+    errors += [
+        f"{name(path)}:{line}: \"{label}\" is a version, date or status label; documents are stateless"
+        for path, document in parsed.items()
+        for line, label in document.state_labels
+    ]
+
+    unlinked = sorted(specifications - parsed[index_path].targets)
     errors += [f"{name(path)}: not linked from {INDEX}" for path in unlinked]
+    referenced = {target for path in specifications for target in nodes[path].targets}
+    errors += [
+        f"{name(path)}: decision record is not referenced from its authoritative document"
+        for path in sorted(decisions - referenced)
+    ]
 
     owners: dict[str, list[tuple[Path, Heading]]] = {}
     for path, document in nodes.items():
+        if path in decisions:
+            continue
         for heading in document.headings[1:]:
             owners.setdefault(heading.text.casefold(), []).append((path, heading))
     errors += [

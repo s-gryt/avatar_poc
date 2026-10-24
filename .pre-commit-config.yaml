@@ -73,7 +73,7 @@ repos:
   - repo: local
     hooks:
       - id: docs-graph
-        name: docs graph (index, scope, single ownership, acyclic references)
+        name: docs graph (index, scope, ownership, acyclic links, ADRs, size cap, no mermaid, stateless)
         language: python
         entry: python tools/docs_graph.py
         pass_filenames: false
