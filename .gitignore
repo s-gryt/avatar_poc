@@ -8,7 +8,7 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-/.omc/
+.omc/
 /.beads.gate.lock*
 /.codegraph/
 /.claude/settings.local.json
