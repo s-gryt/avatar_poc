@@ -107,6 +107,11 @@ If nothing ran, say `not verified` and name the check that would verify it.
   the change is still that risky; you cannot go below the floor.
 - `facts.sh` exits 1 with no changes: nothing is staged or the branch equals
   its base. Stage files or check the base.
+- `upsert-pr.sh` reports the body changed while merging: someone else edited
+  the description between the read and the write. Run it again. The script
+  re-reads the body just before writing, which narrows but cannot close that
+  window, because GitHub has no conditional body update. Avoid refreshing
+  while a bot is still writing its summary.
 - `gh pr edit` fails: `upsert-pr.sh <n> <block> --dry-run` prints the merged
   body; apply it by other means.
 - Mermaid does not render: no `;` inside the diagram, and keep a blank line

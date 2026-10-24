@@ -85,6 +85,11 @@ if [ "$dry_run" -eq 1 ]; then
 elif cmp -s "$work/body.lf" "$work/next"; then
   printf 'upsert-pr.sh: PR #%s already current\n' "$pr" >&2
 else
+  gh pr view "$pr" --json body --jq .body >"$work/body.now"
+  if ! cmp -s "$work/body" "$work/body.now"; then
+    printf 'upsert-pr.sh: PR #%s body changed while merging; nothing was written, run again\n' "$pr" >&2
+    exit 1
+  fi
   gh pr edit "$pr" --body-file "$work/next" >/dev/null
   printf 'upsert-pr.sh: PR #%s recap updated\n' "$pr" >&2
 fi

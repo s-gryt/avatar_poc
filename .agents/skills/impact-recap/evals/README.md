@@ -11,8 +11,9 @@ narrate the diff, without losing accuracy. The script self-test
 2. **Generate.** Two generator runs on a mid-tier model (Sonnet), same cases:
    - _baseline_: "write a commit message / PR description", diff only, no
      access to the skill, `AGENTS.md`, or original commit messages.
-   - _skill_: follows `SKILL.md`, may run `facts.sh` and `lint.sh`, diff
-     only, no access to original commit messages or this folder.
+   - _skill_: follows `SKILL.md`, may run `facts.sh --no-log` and
+     `lint.sh`, diff only, no access to original commit messages or this
+     folder. Without `--no-log`, `facts.sh` prints the original subjects.
 3. **Lint.** Run `scripts/lint.sh` on every output at the `facts.sh` risk
    floor. Baseline outputs are not expected to pass; the pass rate is a
    format signal only.

@@ -156,9 +156,23 @@ expect fail upsert-drops-old-block grep -q '^Only agent instructions change' "$w
 expect pass upsert-keeps-tail grep -qx 'Summary by CodeRabbit' "$work/merged-twice"
 expect pass upsert-single-block test "$(grep -c 'impact-recap:start' "$work/merged-twice")" -eq 1
 
-"$here/facts.sh" --base d537540^ --head d537540 >"$work/facts" 2>/dev/null
+repo="$work/repo"
+git init -q "$repo"
+git_in_repo() { git -C "$repo" -c user.name=test -c user.email=test@example.invalid -c commit.gpgsign=false "$@"; }
+facts_in_repo() { (cd "$repo" && "$here/facts.sh" "$@"); }
+git_in_repo commit -q --allow-empty -m base
+mkdir -p "$repo/.github/workflows"
+printf 'on: pull_request\n' >"$repo/.github/workflows/check.yml"
+git_in_repo add .github
+git_in_repo commit -q -m ci
+
+facts_in_repo --base HEAD~1 --head HEAD >"$work/facts" 2>/dev/null
 expect pass facts-rates-ci-high grep -q '^risk: high (driven by ci)' "$work/facts"
-expect fail facts-empty-scope "$here/facts.sh" --base HEAD --head HEAD
+expect fail facts-empty-scope facts_in_repo --base HEAD --head HEAD
+printf 'draft\n' >"$repo/notes.md"
+git_in_repo add notes.md
+facts_in_repo --staged >"$work/facts-staged" 2>/dev/null
+expect pass facts-staged-rates-docs-low grep -q '^risk: low (driven by docs)' "$work/facts-staged"
 
 write_commit() {
   printf 'docs(guide): restore the validation guide link\n\nImpact: %s\n' "$2" >"$work/$1"
