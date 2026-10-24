@@ -269,7 +269,7 @@ expect pass areas-root-files-explicitly-mapped awk -F'\t' '
 ' "$work/root-files" "$work/mapped-rows"
 expect pass areas-gate-files-rate-high awk -F'\t' '
   FILENAME == ARGV[1] { gate[$1] = 1; next }
-  ($3 in gate) && $2 != "high" { print "gate file below high: " $3 " (" $1 " " $2 ")"; bad = 1 }
+  (($3 in gate) || $1 == "gates" || $1 == "ci") && $2 != "high" { print "gate file below high: " $3 " (" $1 " " $2 ")"; bad = 1 }
   END { exit bad }
 ' "$work/gate-files" "$work/mapped-rows"
 expect pass areas-rates-every-expected-file awk -F'\t' '
